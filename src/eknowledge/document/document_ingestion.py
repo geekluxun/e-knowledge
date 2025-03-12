@@ -2,7 +2,7 @@ from llama_index.core import Settings, PropertyGraphIndex
 from llama_index.core import SimpleDirectoryReader
 from llama_index.core.indices.property_graph import SimpleLLMPathExtractor
 from llama_index.core.ingestion import IngestionPipeline
-from llama_index.core.node_parser import SentenceWindowNodeParser
+from llama_index.core.node_parser import SentenceSplitter
 from llama_index.readers.file import PyMuPDFReader
 
 from eknowledge.document.clean.doc_clean import DocumentsCleaner
@@ -19,7 +19,7 @@ file_extractor = {
 }
 
 
-def documents_load(directory: str):
+def documents_load(directory: str, department: str):
     documents = SimpleDirectoryReader(
         input_dir=directory,
         required_exts=required_exts,
@@ -27,6 +27,8 @@ def documents_load(directory: str):
         filename_as_id=True,
         file_extractor=file_extractor,  # 不同文件类型使用不同的解析器
     ).load_data()
+    for doc in documents:
+        doc.metadata["department"] = department
     return documents
 
 
@@ -35,8 +37,8 @@ def add_documents_to_vector_store(documents, storage_context, embed_model):
     pipeline = IngestionPipeline(
         transformations=[
             DocumentsCleaner(),
-            SentenceWindowNodeParser.from_defaults(window_size=3),
-            # SentenceSplitter(chunk_size=256, chunk_overlap=30),
+            # SentenceWindowNodeParser.from_defaults(window_size=3),
+            SentenceSplitter(chunk_size=1024, chunk_overlap=100),
             # TitleExtractor(),  # 通过llm提出标题添加到metadata中
             embed_model
         ],
@@ -71,6 +73,7 @@ if __name__ == "__main__":
     storage_context = get_storage_context()
     Settings.llm = getLLM()
     Settings.embed_model = getEmbeddings()
-    docs = documents_load("/Users/luxun/Desktop/Agent/")
+    # 保存文档增加部门信息
+    docs = documents_load("/Users/luxun/Desktop/Agent/", "hr")
     add_documents_to_vector_store(documents=docs, storage_context=storage_context, embed_model=Settings.embed_model)
     add_documents_to_graph_store(documents=docs, graph_store=storage_context.property_graph_store, llm=Settings.llm)

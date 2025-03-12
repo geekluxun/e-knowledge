@@ -6,6 +6,7 @@ from eknowledge.store.vector_store import get_vector_store
 
 
 def get_storage_context():
+    # 如果只是向量检索可以不用这个
     doc_store = get_doc_store()
     vector_store = get_vector_store()
     graph_store = get_graph_store()
