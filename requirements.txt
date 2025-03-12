@@ -1,0 +1,15 @@
+llama-index
+llama-index-readers-web
+llama-index-llms-ollama
+llama-index-embeddings-huggingface
+llama-index-vector-stores-milvus
+llama-index-readers-file
+llama-index-storage-docstore-redis
+llama-index-retrievers-bm25
+langchain_experimental
+llama-index-graph-stores-neo4j
+langchain_ollama
+llama-index-llms-langchain
+neo4j
+pymupdf
+unstructured
