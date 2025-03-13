@@ -1,8 +1,10 @@
+import logging
 from typing import Optional, Dict, Any, List
 
 from llama_index.core import BaseCallbackHandler
 from llama_index.core.callbacks import CBEventType
 
+logger = logging.getLogger(__name__)
 
 class LLMLogger(BaseCallbackHandler):
     def __init__(
@@ -23,7 +25,7 @@ class LLMLogger(BaseCallbackHandler):
     ) -> None:
         if event_type == CBEventType.LLM:
             request = payload.get("messages", "")
-            print(f"\n=== LLM 输入 ===\n{request.text if hasattr(request, 'text') else request}")
+            logger(f"\n=== LLM 输入 ===\n{request.text if hasattr(request, 'text') else request}")
 
     def on_event_end(
             self,
@@ -33,7 +35,7 @@ class LLMLogger(BaseCallbackHandler):
     ) -> None:
         if event_type == CBEventType.LLM:
             response = payload.get("response", "")
-            print(f"\n=== LLM 输出 ===\n{response.text if hasattr(response, 'text') else response}")
+            logger(f"\n=== LLM 输出 ===\n{response.text if hasattr(response, 'text') else response}")
 
     def start_trace(self, trace_id: Optional[str] = None) -> None:
         """Run when an overall trace is launched."""

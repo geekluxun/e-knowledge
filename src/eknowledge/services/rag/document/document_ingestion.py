@@ -1,3 +1,5 @@
+import logging
+
 from llama_index.core import Settings, PropertyGraphIndex
 from llama_index.core import SimpleDirectoryReader
 from llama_index.core.indices.property_graph import SimpleLLMPathExtractor
@@ -5,9 +7,11 @@ from llama_index.core.ingestion import IngestionPipeline
 from llama_index.core.node_parser import SentenceSplitter
 from llama_index.readers.file import PyMuPDFReader
 
-from eknowledge.document.clean.doc_clean import DocumentsCleaner
-from eknowledge.model import getLLM, getEmbeddings
-from eknowledge.store.storage import get_storage_context
+from eknowledge.services.rag import init_rag_settings
+from eknowledge.services.rag.context import MyStorageContext
+from eknowledge.services.rag.document.clean.doc_clean import DocumentsCleaner
+
+logger = logging.getLogger(__name__)
 
 required_exts = [".html", ".pdf"]
 # 需要和使用的嵌入模型的维度一致
@@ -48,7 +52,7 @@ def add_documents_to_vector_store(documents, storage_context, embed_model):
     )
     nodes = pipeline.run(documents=documents, show_progress=True, num_workers=1)
 
-    print(f"Ingested {len(nodes)} Nodes")
+    logger(f"Ingested {len(nodes)} Nodes")
 
 
 def add_documents_to_graph_store(documents, graph_store, llm):
@@ -70,9 +74,8 @@ def add_documents_to_graph_store(documents, graph_store, llm):
 
 
 if __name__ == "__main__":
-    storage_context = get_storage_context()
-    Settings.llm = getLLM()
-    Settings.embed_model = getEmbeddings()
+    storage_context = MyStorageContext.storageContext()
+    init_rag_settings()
     # 保存文档增加部门信息
     docs = documents_load("/Users/luxun/Desktop/Agent/", "hr")
     add_documents_to_vector_store(documents=docs, storage_context=storage_context, embed_model=Settings.embed_model)

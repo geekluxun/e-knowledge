@@ -13,3 +13,5 @@ llama-index-llms-langchain
 neo4j
 pymupdf
 unstructured
+fastapi[all]
+uvicorn

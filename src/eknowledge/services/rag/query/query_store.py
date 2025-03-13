@@ -1,14 +1,15 @@
+import logging
+
 from llama_index.core import Settings, PropertyGraphIndex, VectorStoreIndex, StorageContext, get_response_synthesizer
-from llama_index.core.callbacks import CallbackManager, LlamaDebugHandler
 from llama_index.core.query_engine import RetrieverQueryEngine
 from llama_index.core.retrievers import QueryFusionRetriever
 from llama_index.core.vector_stores import MetadataFilters, ExactMatchFilter
 from llama_index.retrievers.bm25 import BM25Retriever
 
-from eknowledge.model import getLLM, getEmbeddings
-from eknowledge.store.storage import get_storage_context
-from eknowledge.trace.llm_logger import LLMLogger
+from eknowledge.services.rag import init_rag_settings
+from eknowledge.services.rag.context import MyStorageContext
 
+logger = logging.getLogger(__name__)
 
 def query_from_vector_store(vector_store, metadata_filter, prompt: str):
     index = VectorStoreIndex.from_vector_store(vector_store)
@@ -55,21 +56,18 @@ def hybrid_query(storage_context: StorageContext, prompt: str):
 
 
 if __name__ == '__main__':
-    storage_context = get_storage_context()
-    Settings.llm = getLLM()
-    Settings.embed_model = getEmbeddings()
-    llama_debug = LlamaDebugHandler(print_trace_on_end=True)
-    llm_logger = LLMLogger()
+    storage_context = MyStorageContext.storageContext()
+    init_rag_settings()
+
     # 定义根据metadata过滤
     metadata_filter = {
         "department": "qa",
     }
-    Settings.callback_manager = CallbackManager([llama_debug, llm_logger])
     response = query_from_graph_store(storage_context.property_graph_store, "MCopilot是什么？")
-    print(response)
+    logger(response)
 
     response = query_from_vector_store(storage_context.vector_store, metadata_filter=metadata_filter, prompt="能力模型是指什么？")
-    print(response)
+    logger(response)
 
     response = hybrid_query(storage_context, "MCopilot是什么？")
-    print(response)
+    logger(response)

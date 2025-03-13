@@ -1,7 +1,7 @@
 # 原始文档清洗
 from llama_index.core.schema import TransformComponent
 
-from eknowledge.document.clean.doc_html_clean import clean_html
+from eknowledge.services.rag.document.clean.doc_html_clean import clean_html
 
 
 class DocumentsCleaner(TransformComponent):
