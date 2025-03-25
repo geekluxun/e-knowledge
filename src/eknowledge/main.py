@@ -18,12 +18,12 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """FastAPII应用程序 生命周期事件"""
-    logger("🚀初始化RAG上下文配置...")
+    logger.info("🚀初始化RAG上下文配置...")
     init_rag_settings()
 
     yield  # 这里会进入 FastAPI 运行阶段
 
-    logger("🛑FastAPI应用程序结束...")
+    logger.info("🛑FastAPI应用程序结束...")
 
 
 app = FastAPI(lifespan=lifespan)

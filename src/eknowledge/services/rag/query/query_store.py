@@ -1,7 +1,9 @@
 import logging
 
 from llama_index.core import Settings, PropertyGraphIndex, VectorStoreIndex, StorageContext, get_response_synthesizer
+from llama_index.core.prompts import PromptTemplate
 from llama_index.core.query_engine import RetrieverQueryEngine
+from llama_index.core.response_synthesizers import ResponseMode
 from llama_index.core.retrievers import QueryFusionRetriever
 from llama_index.core.vector_stores import MetadataFilters, ExactMatchFilter
 from llama_index.retrievers.bm25 import BM25Retriever
@@ -10,6 +12,7 @@ from eknowledge.services.rag import init_rag_settings
 from eknowledge.services.rag.context import MyStorageContext
 
 logger = logging.getLogger(__name__)
+
 
 def query_from_vector_store(vector_store, metadata_filter, prompt: str):
     index = VectorStoreIndex.from_vector_store(vector_store)
@@ -47,7 +50,39 @@ def hybrid_query(storage_context: StorageContext, prompt: str):
         num_queries=1,
         use_async=True,
     )
-    response_synthesizer = get_response_synthesizer()
+    # 自定义 QA 提示模板，改成中文
+    # https://docs.llamaindex.ai/en/stable/examples/response_synthesizers/custom_prompt_synthesizer/
+    qa_template = PromptTemplate(
+        "以下是上下文信息：\n"
+        "---------------------\n"
+        "{context_str}\n"
+        "---------------------\n"
+        "请基于以上上下文信息（而非先前的知识）回答以下查询。\n"
+        "查询: {query_str}\n"
+        "答案:"
+    )
+
+    refiner_template = PromptTemplate(
+        "原始问题如下：{query_str}\n"
+        "我们已有一个现有答案：{existing_answer}\n"
+        "现在我们可以根据以下的更多上下文信息（如果有需要）来完善现有答案。\n"
+        "------------\n"
+        "{context_msg}\n"
+        "------------\n"
+        "基于新的上下文信息，完善现有答案以更好地回答问题。\n"
+        "如果上下文信息无用，则保持原答案不变。\n"
+        "优化后的答案：")
+
+    # 使用自定义模板创建响应合成器
+    response_synthesizer = get_response_synthesizer(
+        # 解释response_mode https://docs.llamaindex.ai/en/stable/module_guides/deploying/query_engine/response_modes/
+        response_mode=ResponseMode.COMPACT,
+        text_qa_template=qa_template,
+        refine_template=refiner_template,
+        # refine模块能够过滤掉与所问问题无关的任何输入节点
+        structured_answer_filtering=True,
+    )
+
     query_engine = RetrieverQueryEngine(
         retriever=retriever,
         response_synthesizer=response_synthesizer,
@@ -70,4 +105,4 @@ if __name__ == '__main__':
     logger(response)
 
     response = hybrid_query(storage_context, "MCopilot是什么？")
-    logger(response)
+    logger.info(response)

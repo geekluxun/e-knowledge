@@ -52,7 +52,7 @@ def add_documents_to_vector_store(documents, storage_context, embed_model):
     )
     nodes = pipeline.run(documents=documents, show_progress=True, num_workers=1)
 
-    logger(f"Ingested {len(nodes)} Nodes")
+    logger.info(f"Ingested {len(nodes)} Nodes")
 
 
 def add_documents_to_graph_store(documents, graph_store, llm):

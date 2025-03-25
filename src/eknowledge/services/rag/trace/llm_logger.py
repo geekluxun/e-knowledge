@@ -25,7 +25,7 @@ class LLMLogger(BaseCallbackHandler):
     ) -> None:
         if event_type == CBEventType.LLM:
             request = payload.get("messages", "")
-            logger(f"\n=== LLM 输入 ===\n{request.text if hasattr(request, 'text') else request}")
+            logger.info(f"\n=== LLM 输入 ===\n{request.text if hasattr(request, 'text') else request}")
 
     def on_event_end(
             self,
@@ -35,7 +35,7 @@ class LLMLogger(BaseCallbackHandler):
     ) -> None:
         if event_type == CBEventType.LLM:
             response = payload.get("response", "")
-            logger(f"\n=== LLM 输出 ===\n{response.text if hasattr(response, 'text') else response}")
+            logger.info(f"\n=== LLM 输出 ===\n{response.text if hasattr(response, 'text') else response}")
 
     def start_trace(self, trace_id: Optional[str] = None) -> None:
         """Run when an overall trace is launched."""

@@ -1,12 +1,12 @@
-from langchain_ollama import ChatOllama
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
+from llama_index.llms.ollama import Ollama
 
 
 def getLLM():
-    llm = ChatOllama(
-        model="qwen2:7b",
+    llm = Ollama(
+        model="qwen2:7b-instruct",
         temperature=0,
-        # other params...
+        context_window=16384,
     )
     return llm
 
